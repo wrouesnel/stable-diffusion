@@ -73,10 +73,10 @@ def generate(
     # Logging
     logger(locals(), "logs/txt2img_gradio_logs.csv")
 
-    if device != "cpu" and full_precision == False:
-        model.half()
-        modelFS.half()
-        modelCS.half()
+    # if device != "cpu" and full_precision == False:
+    #     model.half()
+    #     modelFS.half()
+    #     modelCS.half()
 
     tic = time.time()
     os.makedirs(outdir, exist_ok=True)
