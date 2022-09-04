@@ -1,37 +1,44 @@
-FROM nvidia/cuda:11.3.1-base-ubuntu20.04
+FROM rocm/rocm-terminal
 
-SHELL ["/bin/bash", "-c"]
+USER root
 
-RUN apt update \
- && apt install --no-install-recommends -y curl wget git \
- && apt-get clean
+RUN apt update && apt install -y python3.8
 
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.12.0-Linux-x86_64.sh -O ~/miniconda.sh \
- && bash ~/miniconda.sh -b -p $HOME/miniconda \
- && $HOME/miniconda/bin/conda init
+WORKDIR /root
 
-COPY . /root/stable-diffusion
+RUN python3.8 -m pip install -U pip ruamel.yaml
 
-RUN eval "$($HOME/miniconda/bin/conda shell.bash hook)" \
- && cd /root/stable-diffusion \
- && conda env create -f environment.yaml \
- && conda activate ldm \
- && pip install gradio==3.1.7
+RUN pip3.8 install \
+    --extra-index-url https://download.pytorch.org/whl/rocm5.1.1 \
+    torch torchvision torchaudio
 
-VOLUME /root/.cache
-VOLUME /data
-VOLUME /output
+COPY requirements.txt /root/requirements.txt
+
+RUN pip3.8 install -r requirements.txt
 
 ENV PYTHONUNBUFFERED=1
 ENV GRADIO_SERVER_NAME=0.0.0.0
 ENV GRADIO_SERVER_PORT=7860
 EXPOSE 7860
 
-RUN ln -s /data /root/stable-diffusion/models/ldm/stable-diffusion-v1 \
- && mkdir -p /output /root/stable-diffusion/outputs \
- && ln -s /output /root/stable-diffusion/outputs/txt2img-samples
+# For some reason taming-transformers doesn't play nicely without an editable install done manually
+RUN git clone https://github.com/CompVis/taming-transformers.git && \
+    cd taming-transformers && \
+    pip3.8 install -e .
+
+COPY . /root/stable-diffusion
+
+ENV PYTHONPATH=/root/taming-transformers:/root/stable-diffusion
 
 WORKDIR /root/stable-diffusion
 
-ENTRYPOINT ["/root/stable-diffusion/docker-bootstrap.sh"]
-CMD python optimizedSD/txt2img_gradio.py
+RUN pip3.8 install -e .
+
+RUN ln -sf /data /root/stable-diffusion/models/ldm/stable-diffusion-v1 \
+ && mkdir -p /output /root/stable-diffusion/outputs \
+ && ln -sf /output /root/stable-diffusion/outputs/txt2img-samples
+
+# Options for gfx1010 (Navi 10) cards
+ENV HSA_OVERRIDE_GFX_VERSION=10.3.0
+
+CMD python3.8 optimizedSD/txt2img_gradio.py
