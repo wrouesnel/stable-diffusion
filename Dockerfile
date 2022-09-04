@@ -41,4 +41,4 @@ RUN ln -sf /data /root/stable-diffusion/models/ldm/stable-diffusion-v1 \
 # Options for gfx1010 (Navi 10) cards
 ENV HSA_OVERRIDE_GFX_VERSION=10.3.0
 
-CMD python3.8 optimizedSD/txt2img_gradio.py
+ENTRYPOINT [ "python3.8", "optimizedSD/txt2img_gradio.py" ]
