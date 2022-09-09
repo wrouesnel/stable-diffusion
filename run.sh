@@ -8,7 +8,9 @@ done
 
 exec podman run \
     --rm \
+    --userns=keep-id \
     -v "$HOME/.cache:/root/.cache" -v "$HOME/sd-data:/data" -v "$HOME/sd-output:/output" \
+	-v "$HOME/notebooks:/root/notebooks" \
     --device=/dev/kfd \
     --device=/dev/dri \
     --ipc=host \
@@ -16,4 +18,6 @@ exec podman run \
     --cap-add=SYS_PTRACE \
     --security-opt seccomp=unconfined \
     -p 127.0.0.1:7860:7860 \
-    "$(cat .dockerid)"
+	-p 127.0.0.1:8888:8888 \
+    "$(cat .dockerid)" \
+    "$@"

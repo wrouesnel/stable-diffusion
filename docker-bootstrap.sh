@@ -1,5 +1,8 @@
 #!/bin/bash
-set -e
-eval "$($HOME/miniconda/bin/conda shell.bash hook)"
-conda activate ldm
-exec "$@"
+echo "$@" 1>&2
+
+if [ -e "/root/stable-diffusion/$1" ]; then
+    exec "python3.8" "$@"
+fi
+
+exec bash
