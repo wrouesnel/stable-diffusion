@@ -7,8 +7,8 @@ for path in "$HOME/sd-data" "$HOME/sd-output"; do
 done
 
 exec podman run \
+    -it \
     --rm \
-    --userns=keep-id \
     -v "$HOME/.cache:/root/.cache" -v "$HOME/sd-data:/data" -v "$HOME/sd-output:/output" \
 	-v "$HOME/notebooks:/root/notebooks" \
     --device=/dev/kfd \
